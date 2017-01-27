@@ -3,7 +3,9 @@ this.addEventListener('install', function(event) {
 		caches.open('v1').then(function(cache) {
 			return cache.addAll([
 				'/scripts/',
-				'/scripts/devtools'
+				'/scripts/devtools/',
+				'/scripts/devtools/devtools.js',
+				'/scripts/devtools/devtools.html'
 			]);
 		})
 	);

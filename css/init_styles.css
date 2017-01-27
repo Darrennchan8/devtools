@@ -36,11 +36,32 @@ a {
 	margin: 16px 0 0;
 	padding: 0;
 	text-align: center;
+	position: relative;
 }
 
 #message li a {
 	display: inline-block;
 	padding: 8px;
+	font-size: 14px;
+}
+
+#startItem {
+	z-index: 1;
+}
+
+#linkerItem {
+	opacity: 0;
+	top: 0;
+	position: absolute;
+	width: 100%;
+	z-index: 0;
+}
+
+#linker {
+	cursor: pointer;
+}
+
+#start {
 	text-transform: uppercase;
 	text-decoration: none;
 	font-weight: 500;
@@ -48,7 +69,24 @@ a {
 	color: white;
 	border: 1px solid rgb(3,155,229);
 	border-radius: 3px;
-	font-size: 14px;
 	box-shadow: 0 2px 5px 0 rgba(0,0,0,.26);
 	cursor: pointer;
+}
+
+#start.disabled {
+	background: #9E9E9E;
+	border: 1px solid #9E9E9E;
+	pointer-events: none;
+	cursor: default;
+}
+
+#start.noclick {
+	z-index: -1;
+	pointer-events: none;
+	cursor: pointer;
+}
+
+#linkerItem.noclick {
+	z-index: -1;
+	pointer-events: none;
 }

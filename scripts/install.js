@@ -1,59 +1,149 @@
 $(window).on('load', function() {
-	var text = [{
-		description: 'This setup will take you through the steps to install developer tools.',
-		btn: 'Start'
-	}, {
-		description: 'For offline use, a service worker needs to be installed.',
-		btn: 'Install',
-		onclick: function() {
-			allowNext = false;
-			if ('serviceWorker' in navigator) {
-				navigator.serviceWorker.register('serviceWorker.js', {
-					scope: './'
-				}).then(function (registration) {
-					allowNext = true;
-					$('#start').attr('onclick', 'alert()');
-				}).catch(function (err) {
-					toSlide({
-						title: 'An error occurred.',
-						description: err
-					});
-				});
-			} else {
-				toSlide({
-					title: 'An error occurred.',
-					description: 'ServiceWorkers are not supported on your device yet...',
-					btn: 'Enable',
-					onclick: function () {
-						window.open('chrome://flags');
-					}
-				});
+	'use strict';
+	let text = [{
+		success: {
+			title: 'Welcome to the Developer Tools Setup!',
+			description: 'This setup will take you through the steps to install developer tools.',
+			btn: 'Start',
+			onclick: function(props) {
+				props.response.resolve();
+			}
+		},
+		fail: {
+			title: 'An error occurred.',
+			description: 'An unexpected error occurred during initialization.',
+			btn: 'Refresh Page',
+			onclick: function(props) {
+				props.btn.disable();
+				location.reload();
 			}
 		}
 	}, {
-		title: 'Success!',
-		description: 'The service worker has been installed. To start, drag this to your bookmarks bar.',
-		btn: 'Drag Me!'
-	}];
-	var slide = 0;
-	var allowNext = true;
-	var toSlide = function(props) {
-		if (props.title) {
-			$('#title').text(props.title);
+		success: {
+			title: 'Install a ServiceWorker',
+			description: 'For offline use, a service worker needs to be installed.',
+			btn: 'Install',
+			onclick: function(props) {
+				props.btn.disable();
+				if ('serviceWorker' in navigator && navigator.serviceWorker.register) {
+					navigator.serviceWorker.register('serviceWorker.js', {
+						scope: './'
+					}).then(function (registration) {
+						console.log(registration);
+						props.response.resolve();
+					}).catch(function () {
+						props.response.reject();
+					});
+				} else {
+					props.response.reject();
+				}
+			}
+		},
+		fail: {
+			title: 'An error occurred.',
+			description: 'An unexpected error occurred during initialization.',
+			btn: 'Refresh Page',
+			onclick: function(props) {
+				props.btn.disable();
+				location.reload();
+			}
 		}
-		$('#description').text(props.description);
-		$('#start').text(props.btn);
-		if (props.onclick) {
-			$('#start').one('click', function(e) {
-				e.stopPropagation();
-				props.onclick();
-			});
+	}, {
+		success: {
+			enter: function(props) {
+				props.btn.disable();
+				$.ajax('scripts/inject.js', {
+					dataType: 'text'
+				}).done(function(data) {
+					props.response.resolve();
+					props.btn.enableCode(data, 'Developer Tools');
+				}).fail(function() {
+					props.response.reject();
+				});
+			},
+			title: 'Gathering data...',
+			description: 'The service worker has been installed. Fetching the injection script...',
+			btn: 'Fetching...'
+		},
+		fail: {
+			title: 'An error occurred.',
+			description: 'ServiceWorkers may not have been enabled for this browser. To enable, go to chrome://flags, and enable service workers.',
+			btn: 'Refresh Page',
+			onclick: function(props) {
+				props.btn.disable();
+				location.reload();
+			}
+		}
+	}, {
+		success: {
+			title: 'All Done!',
+			description: 'Drag this button to your bookmarks bar, and click to trigger developer tools.',
+			btn: 'Drag Me!'
+		},
+		fail: {
+			title: 'An error occurred.',
+			description: 'Unable to get the installation script',
+			btn: 'Refresh Page',
+			onclick: function(props) {
+				props.btn.disable();
+				location.reload();
+			}
+		},
+	}];
+	let slide = 0;
+	let start = $('#start');
+	let target;
+	let linkerItem = $('#linkerItem');
+	let props = {
+		response: {
+			resolve: function() {
+				props.btn.enable();
+				toSlide(++slide, true);
+			},
+			reject: function() {
+				props.btn.enable();
+				toSlide(++slide, false);
+			}
+		},
+		btn: {
+			currText: '',
+			disable: function() {
+				start.addClass('disabled');
+				start.removeClass('noclick');
+				linkerItem.addClass('noclick');
+			},
+			enable: function() {
+				start.removeClass('disabled');
+				start.removeClass('noclick');
+				linkerItem.addClass('noclick');
+			},
+			text: function(txt) {
+				start.text(txt);
+			},
+			enableCode: function(code, hintText) {
+				let link = $('#linker');
+				link.text(hintText);
+				link.attr('href', 'javascript:' + code);
+				linkerItem.removeClass('noclick');
+				start.addClass('noclick');
+			}
 		}
 	};
-	$('#start').click(function() {
-		if (allowNext) {
-			toSlide(++slide > text.length - 1 ? text.length - 1 : text[slide]);
+	start.on('click', function(e) {
+		if (target.onclick) {
+			target.onclick(props, e);
 		}
 	});
-	toSlide(text[slide]);
+	let toSlide = function(index, success) {
+		target = text[index][success ? 'success' : 'fail'];
+		if (target.enter) {
+			target.enter(props);
+		}
+		if (target.title) {
+			$('#title').text(target.title);
+		}
+		$('#description').text(target.description);
+		start.text(target.btn);
+	};
+	toSlide(slide, true);
 });

@@ -1,4 +1,8 @@
 (function() {
+	/***
+	 *  @property currentScript
+	 *  @property SecurityPolicyViolationEvent
+	 */
 	let devtools = {
 		/*
 		 Contains various shared items across devtools
@@ -6,13 +10,13 @@
 		target: window,
 		config: {
 			/*console: {
-			 history: [{
-			 type: 'user',
-			 value: [{
-			 innerText: 'console.log("test")',
-			 cursorPos: 0
-			 }]
-			 }]
+				 history: [{
+					 type: 'user',
+					 value: [{
+						 innerText: 'console.log("test")',
+						 cursorPos: 0
+					 }]
+				 }]
 			 }*/
 		},
 		modules: {
@@ -38,8 +42,8 @@
 				}
 			},
 			inspector: {
-				init: function(VM) {
-					throw new Error('Inspector improperly initalized!');
+				init: function(/*VM*/) {
+					throw new Error('Inspector improperly initialized!');
 				},
 				events: {
 					shutdown: []
@@ -51,13 +55,13 @@
 				}
 			},
 			console: {
-				init: function(VM) {
-					throw new Error('Console improperly initalized!');
+				init: function(/*VM*/) {
+					throw new Error('Console improperly initialized!');
 				},
 				events: {
 					shutdown: []
 				},
-				callCommand: function(consoleCommand) {
+				callCommand: function(/*consoleCommand*/) {
 					return function() {
 					};
 				},
@@ -229,24 +233,24 @@
 					return model.init.styles;
 				}
 			},
-			filterEligibleChildren: function(elems) {
+			filterEligibleChildren: function(elements) {
 				let children = [];
 				if (devtools.config.inspector.showInspector) {
-					children = elems.children;
+					children = elements.children;
 				} else {
-					for (let i = 0, ii = elems.children.length; i != ii; i++) {
-						if (!devtools.modules.global.elements.allDevtoolsContainer.contains(elems.children[i])) {
-							children.push(elems.children[i]);
+					for (let i = 0, ii = elements.children.length; i != ii; i++) {
+						if (!devtools.modules.global.elements.allDevtoolsContainer.contains(elements.children[i])) {
+							children.push(elements.children[i]);
 						}
 					}
 				}
-				children.innerHTML = elems.children.length ? '' : elems.innerHTML || '';
-				children.innerText = elems.children.length ? '' : elems.innerText || '';
+				children.innerHTML = elements.children.length ? '' : elements.innerHTML || '';
+				children.innerText = elements.children.length ? '' : elements.innerText || '';
 				for (let i = 0, ii = children.length; i != ii; i++) {
 					children.innerHTML += children[i].innerHTML;
 					children.innerText += children[i].innerText;
 				}
-				children.parent = elems;
+				children.parent = elements;
 				return children;
 			}
 		};
@@ -376,20 +380,20 @@
 					}
 					str1.appendChild(tag);
 					for (let i = 0, ii = elem.attributes.length; i != ii; i++) {
-						let attrib = document.createElement('span');
-						attrib.className = 'attributeName';
+						let attribute = document.createElement('span');
+						attribute.className = 'attributeName';
 						let name = elem.attributes[i].name;
 						let value = elem.attributes[i].value;
-						attrib.innerText = name;
+						attribute.innerText = name;
 						view.makeEditable({
-							elem: attrib,
+							elem: attribute,
 							callback: function(val) {
 								elem.removeAttribute(name);
 								elem.setAttribute(val, value || '');
 								name = val;
 							}
 						});
-						str1.appendChild(attrib);
+						str1.appendChild(attribute);
 						if (value) {
 							let black = document.createElement('span');
 							black.className = 'equalsAtribute';
@@ -478,7 +482,7 @@
 					let wrapper = document.createElement('div');
 					/*
 					 assert getReasonFor(children.length > 0) == "Because that it is impossible to display zero children";
-					 assert getReasonFor(children.innerHTML.includes('\n')) == "Because that a rogue document could just have \n\n\n\n\n\n..., but even one <br> could harm user experiance";
+					 assert getReasonFor(children.innerHTML.includes('\n')) == "Because that a rogue document could just have \n\n\n\n\n\n..., but even one <br> could harm user experience";
 					 assert getReasonFor(children.innerHTML != children.innerText) == "Because that we need to detect when elements/something_other_than_text_nodes exists";
 					 assert getReasonFor(children.innerHTML.trim().length > 30) == "Because that ultra-long innerTexts can be laggy and can be abused by malicious documents";
 					 */
@@ -633,7 +637,7 @@
 								let colors = [];
 								if (overrides[i].color) {
 									colors.push(overrides[i].color);
-									for (let ii of arguments) {
+									for (let ii = 0; ii != arguments.length; ii++) {
 										colors.push(overrides[i].color);
 									}
 								} else {
@@ -672,7 +676,6 @@
 							configurable: false
 						});
 					} catch (err) {
-						console.error(err);
 						console.warn('Unable to hook onto window.onerror, external script errors may not be caught.');
 					}
 					let errFuncEvt = console.error;
@@ -1127,8 +1130,8 @@
 							controller.history.push('enableEval', 'user');
 						}
 					},
-					onCall: function(resolve, reject, args) {
-						console.log('Waiting for user concent...');
+					onCall: function(resolve, reject) {
+						console.log('Waiting for user consent...');
 						window.webkitStorageInfo.requestQuota(window.PERSISTENT, 1024 * 1024, function(grantedBytes) {
 							window.webkitRequestFileSystem(window.PERSISTENT, grantedBytes, function(fs) {
 								let entrypointName = '_devTools';
@@ -1160,10 +1163,10 @@
 									enumerable: false,
 									configurable: false
 								});
-								devtools.modules.console.eval = function(command, callback) {
+								devtools.modules.console.eval = function(command) {
 									if (!command.includes('return ')) {
 										let cmd = command.split(';');
-										if (cmd[cmd.length - 1].trim() == '') {
+										if (cmd[cmd.length - 1].trim() === '') {
 											cmd.pop();
 										}
 										let last = 'return ' + cmd.pop();
@@ -1219,7 +1222,7 @@
 					}
 				},
 				'exit': {
-					onCall: function(resolve, reject, args) {
+					onCall: function(resolve) {
 						resolve('Broadcasting Exit Signal...');
 						devtools.modules.global.exit();
 					}
@@ -1335,7 +1338,7 @@
 									let iframes = document.querySelectorAll('iframe');
 									for (let i = iframes.length; i--;) {
 										try {
-											del(iframes[i].contentWindow)
+											del(iframes[i].contentWindow);
 										} catch (err) {}
 									}
 									del(_loc);
@@ -1438,7 +1441,7 @@
 			},
 			view = {
 				init: {
-					initalized: false,
+					initialized: false,
 					init: function() {
 						view.init.loadCSS();
 						view.init.loadElements();
@@ -1504,7 +1507,7 @@
 							devtools.modules.console.events.shutdown.push(function() {
 								window.removeEventListener('keydown', consoleKey);
 							}.bind(this));
-							let blurDetector = function(e) {
+							let blurDetector = function() {
 								pos = view.inputArea.getPos();
 								if (!pos) {
 									pos = 0;
@@ -1564,7 +1567,7 @@
 						view.logArea = logArea;
 						let positionRetainer = function(e) {
 							if (VM.scrollTop == view.bodyArea.scrollHeight - VM.clientHeight) {
-								/* If the log area is alerady scrolled to the bottom, scroll to bottom after resize. */
+								/* If the log area is already scrolled to the bottom, scroll to bottom after resize. */
 								e.detail.then(function() {
 									VM.scrollTop = view.bodyArea.scrollHeight;
 								}.bind(this));
@@ -1637,8 +1640,7 @@
 								}
 								this.allSuggestions.modal.children[this.allSuggestions.index].className = 'active';
 								let current = this.allSuggestions.eligible[this.allSuggestions.index].suggestion;
-								let txt = current.substring(this.allSuggestions.start, current.length);
-								this.allSuggestions.currentSuggestion.element.innerText = txt;
+								this.allSuggestions.currentSuggestion.element.innerText = current.substring(this.allSuggestions.start, current.length);
 								if (switchSelection) {
 									e.preventDefault();
 									e.stopPropagation();
@@ -1753,7 +1755,7 @@
 											innerText: args
 										}, 'error');
 										let colors = [];
-										for (let i of args) {
+										for (let i = 0; i != args.length; i++) {
 											colors.push('#D50000');
 										}
 										view.log.log({
@@ -1782,7 +1784,7 @@
 								if (!sel.baseNode || sel.isCollapsed || sel.baseNode.parentNode.parentNode != multiMessageWrapper) {
 									let scrolledBottom = VM.scrollTop == view.bodyArea.scrollHeight - VM.clientHeight;
 									/*
-									 Let the user see 10 more lines with each aditional click; give 200ms of waitTime to allow for double click to register
+									 Let the user see 10 more lines with each additional click; give 200ms of waitTime to allow for double click to register
 									 */
 									multiMessageWrapper.style.webkitLineClamp = (parseInt(multiMessageWrapper.style.webkitLineClamp || '3') + 10).toString();
 									if (scrolledBottom) {
@@ -1804,7 +1806,7 @@
 					},
 					_stringify: function(entry, userInput, minify) {
 						/*
-						 Generates a valid string preview of an object, array, string, etc. Autocolors.
+						 Generates a valid string preview of an object, array, string, etc.
 						 */
 						let entryElem = document.createElement('span');
 						if (entry === null) {
@@ -2283,8 +2285,7 @@
 											allSuggestions.index = e.target.index;
 											e.target.classList.add('active');
 											let current = allSuggestions.eligible[allSuggestions.index].suggestion;
-											let txt = current.substring(allSuggestions.start, current.length);
-											allSuggestions.currentSuggestion.element.innerText = txt;
+											allSuggestions.currentSuggestion.element.innerText = current.substring(allSuggestions.start, current.length);
 										}
 									}.bind(this));
 									/*
@@ -2695,7 +2696,7 @@
 					view.fancyBar.init();
 					view.modulesSection.children[0].click();
 					if (document.compatMode == 'BackCompat') {
-						console.warn('Devtools may not play nicely with Quirks Mode, and visual/functional glitches may appear. Your warrenty is now void.');
+						console.warn('Devtools may not play nicely with Quirks Mode, and visual/functional glitches may appear. Your warranty is now void.');
 					}
 				},
 				loadCSS: function() {
@@ -2925,7 +2926,7 @@
 					let clickStopper = function(e) {
 						e.stopPropagation();
 					};
-					let switchTabs = function(e) {
+					let switchTabs = function() {
 						if (view.activeVM) {
 							view.activeVM.frame.style.display = 'none';
 						}

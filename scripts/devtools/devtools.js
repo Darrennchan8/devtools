@@ -1,8 +1,4 @@
 (function() {
-	/***
-	 *  @property currentScript
-	 *  @property SecurityPolicyViolationEvent
-	 */
 	let devtools = {
 		/*
 		 Contains various shared items across devtools
@@ -1314,13 +1310,13 @@
 										clearInterval(i);
 									}
 								})(setTimeout(function() {}, 10), setInterval(function() {}, 10));
-								(function(probe, _loc, freezeRay) {
-									let whitelist = [window.location];
+								(function(probe, _loc, freezeRay, queryAll) {
+									let whitelist = ['location'];
 									let tried = [];
 									let del = function(target) {
 										probe(target).forEach(function(i) {
 											try {
-												if (!whitelist.includes(target[i])) {
+												if (!whitelist.includes(i)) {
 													try {
 														target[i] = undefined;
 													} catch (err) {}
@@ -1334,16 +1330,15 @@
 												}
 											} catch (err) {}
 										});
+										Array.from(queryAll('iframe')).forEach(i => {
+											try {
+												del(i.contentWindow);
+											} catch (err) {}
+										});
 									};
-									let iframes = document.querySelectorAll('iframe');
-									for (let i = iframes.length; i--;) {
-										try {
-											del(iframes[i].contentWindow);
-										} catch (err) {}
-									}
 									del(_loc);
 									freezeRay(_loc);
-								})(Object.getOwnPropertyNames, window, Object.freeze);
+								})(Object.getOwnPropertyNames, window, Object.freeze, document.querySelectorAll);
 								resolve('Session destroyed!');
 							} else if (args[0] == '--help') {
 								resolve(help);

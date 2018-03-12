@@ -13,14 +13,6 @@
 	xhr.send();
 	xhr.onload = function() {
 		let code = xhr.responseText;
-		/**
-		 *  @property webkitStorageInfo
-		 *  @property requestQuota
-		 *  @property PERSISTENT
-		 *  @property webkitRequestFileSystem
-		 *  @property getFile
-		 *  @property createWriter
-		 */
 		window.webkitStorageInfo.requestQuota(window.PERSISTENT, 1024 * 1024, function(grantedBytes) {
 			window.webkitRequestFileSystem(window.PERSISTENT, grantedBytes, function(fs) {
 				fs.root.getFile(scriptName, {create: true}, function(file) {
